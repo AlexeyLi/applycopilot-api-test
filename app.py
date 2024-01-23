@@ -1,6 +1,4 @@
 import atexit
-
-import psycopg2
 from dotenv import load_dotenv
 import logging
 import json
@@ -20,7 +18,6 @@ logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
 app.secret_key = os.getenv('SECRET_KEY')
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
 app.config['SESSION_TYPE'] = 'filesystem'
-conn = psycopg2.connect(os.getenv('DATABASE_URL'), sslmode='require')
 
 db.init_app(app)
 bcrypt.init_app(app)
