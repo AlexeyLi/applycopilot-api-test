@@ -1,4 +1,8 @@
-import atexit
+# Import modules that need to be patched before ssl
+from gevent import monkey
+monkey.patch_all()
+
+# Rest of the imports
 from dotenv import load_dotenv
 import logging
 import json
@@ -9,6 +13,7 @@ from flask_jwt_extended import JWTManager
 from flask_restful import Api
 from resources import UserResource, UserLogin, UserProfileResource
 from models import db, bcrypt, login_manager
+
 
 app = Flask(__name__)
 
@@ -37,12 +42,9 @@ def before_first_request():
 
 # Clear the database when the app stops
 # This is for testing purposes only, should be deleted in production
-def cleanup_database(exception=None):
-    # db.session.remove()
-    db.drop_all()
-
-
-atexit.register(cleanup_database)
+# def cleanup_database(exception=None):
+#     db.session.remove()
+#     db.drop_all()
 
 
 class CustomJSONEncoder(json.JSONEncoder):
@@ -66,3 +68,6 @@ app.debug = True
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0')
+
+# Attach the cleanup_database function to the app's teardown_appcontext
+# app.teardown_appcontext(cleanup_database)
