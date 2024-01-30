@@ -9,12 +9,9 @@ from .resources.user_profile_resource import UserProfileResource
 from .resources.question_resource import QuestionResource
 
 import json
-from dotenv import load_dotenv
 
 from .config import Config
 from .extensions import db, bcrypt, jwt, login_manager
-
-load_dotenv()
 
 app = Flask(__name__)
 app.config.from_object(Config)
