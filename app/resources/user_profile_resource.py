@@ -1,72 +1,12 @@
-# resources.py
-from flask_login import logout_user
-from flask_restful import Resource
-from flask_jwt_extended import jwt_required, create_access_token, get_jwt_identity
-from flask import request
-from models import User, UserProfile, db, bcrypt, load_user
-
 from datetime import datetime
+from flask_restful import Resource
+from flask_jwt_extended import (
+    jwt_required,
+    get_jwt_identity)
+from flask import request
 
-class UserResource(Resource):
-    def post(self):
-        username = request.json.get('username')
-        password = request.json.get('password')
-        confirm_password = request.json.get('confirm_password')
-
-        if not username or not password or not confirm_password:
-            return {'message': 'Username, password, and confirm password are required'}, 400
-
-        if password != confirm_password:
-            return {'message': 'Passwords do not match'}, 400
-
-        # Check if the username already exists
-        existing_user = User.query.filter_by(username=username).first()
-
-        if existing_user:
-            return {'message': 'Username already exists'}, 409
-
-        # Hash the password
-        hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
-
-        # Create a new user
-        new_user = User(username=username, hashed_password=hashed_password)
-
-        # Save the new user to the database
-        db.session.add(new_user)
-        db.session.commit()
-        return {'message': 'User registered successfully'}, 201
-
-    @jwt_required()
-    def delete(self):
-        current_user_id = get_jwt_identity()
-
-        # Query the User model to get the user instance
-        current_user = load_user(current_user_id)
-
-        if current_user:
-            db.session.delete(current_user)
-            db.session.commit()
-            logout_user()
-            return {'message': 'User deleted successfully'}, 200
-        else:
-            return {'message': 'User not found'}, 404
-
-
-class UserLogin(Resource):
-    def post(self):
-        username = request.json.get('username')
-        password = request.json.get('password')
-
-        user = User.query.filter_by(username=username).first()
-
-        if not user:
-            return {'error': 'User not found'}, 401
-
-        if user and bcrypt.check_password_hash(user.hashed_password, password):
-            access_token = create_access_token(identity=user.id)
-            return {'access_token': access_token}, 200
-        else:
-            return {'error': 'Invalid username or password'}, 401
+from app.models.models import UserProfile
+from app.extensions import db
 
 
 class UserProfileResource(Resource):
@@ -144,7 +84,7 @@ class UserProfileResource(Resource):
             if full_name:
                 user_profile.full_name = full_name
             if date_of_birth_str:
-                user_profile.date_of_birth = datetime.strptime(date_of_birth_str, '%Y-%m-%d').date()
+                user_profile.date_of_birth = datetime.strptime(date_of_birth_str, '%m-%d-%Y').date()
             if address:
                 user_profile.address = address
 
@@ -153,6 +93,6 @@ class UserProfileResource(Resource):
             return {'message': 'User profile updated successfully'}, 200
 
         except ValueError:
-            return {'message': 'Invalid date format. Please use "YYYY-MM-DD"'}, 400
+            return {'message': 'Invalid date format. Please use "MM-DD-YYYY"'}, 400
         except Exception as e:
             return {'message': 'An error occurred while updating user profile'}, 500

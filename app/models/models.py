@@ -1,18 +1,13 @@
-# models.py
-from flask_login import UserMixin, LoginManager
-from flask_bcrypt import Bcrypt
-from flask_sqlalchemy import SQLAlchemy
+from app.extensions import db, bcrypt, login_manager
+from flask_login import UserMixin
+from sqlalchemy import LargeBinary
 
-db = SQLAlchemy()
-bcrypt = Bcrypt()
 
-login_manager = LoginManager()
-
-# Define the user_loader function
 @login_manager.user_loader
 def load_user(user_id):
     # This function is used to load a user from the user ID stored in the session
     return User.query.get(int(user_id))
+
 
 class User(db.Model, UserMixin):
     __tablename__ = 'users'
@@ -37,3 +32,11 @@ class UserProfile(db.Model):
     full_name = db.Column(db.String(255))
     date_of_birth = db.Column(db.Date)
     address = db.Column(db.String(255))
+
+
+class Question(db.Model):
+    __tablename__ = 'questions'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    question = db.Column(db.String(255), unique=True)
+    answer = db.Column(db.String(255))
